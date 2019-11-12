@@ -25,7 +25,7 @@
 				include_once(WEB_PATH . '/lib/db.php');
 				$db = new DB();
 
-				$user_result = $db->query('SELECT u.`id`, u.`account`, u.`name`, u.`gender`, u.`department`, u.`position`, p.`id` AS `pwd_id` FROM `user` AS u LEFT JOIN `user_pwd` AS p ON u.`id` = p.`user_id` WHERE u.`account` = \'' . $account . '\' AND p.`password` = \'' . md5($password) . '\';');
+				$user_result = $db->query('SELECT u.`id`, u.`account`, u.`name`, u.`gender`, u.`department_id`, u.`position_id`, p.`id` AS `pwd_id` FROM `user` AS u LEFT JOIN `user_pwd` AS p ON u.`id` = p.`user_id` WHERE u.`account` = \'' . $account . '\' AND p.`password` = \'' . md5($password) . '\';');
 
 				if(empty($user_result)) {
 					$message_arr[] = array('error', '請確認 帳號/密碼 輸入正確');

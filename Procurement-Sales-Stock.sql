@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2019 年 11 月 12 日 01:30
--- 伺服器版本： 5.7.28
+-- 產生時間： 2019 年 11 月 12 日 10:57
+-- 伺服器版本： 5.7.28-log
 -- PHP 版本： 7.2.24
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -31,10 +31,21 @@ SET time_zone = "+00:00";
 CREATE TABLE `department` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(50) NOT NULL COMMENT '部門名稱',
+  `permission` text COMMENT '權限',
   `disable_date` datetime DEFAULT NULL COMMENT '停用時間',
   `create_date` datetime NOT NULL COMMENT '建立時間	',
   `edit_date` datetime NOT NULL COMMENT '最後修改時間	'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='部門';
+
+--
+-- 傾印資料表的資料 `department`
+--
+
+INSERT INTO `department` (`id`, `name`, `permission`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, '會計室', '1,2,3,4', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(2, '第一業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(3, '第二業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(4, '第三業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -45,10 +56,20 @@ CREATE TABLE `department` (
 CREATE TABLE `position` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(50) NOT NULL COMMENT '職務名稱',
+  `permission` text COMMENT '權限',
   `disable_date` datetime DEFAULT NULL COMMENT '停用時間',
   `create_date` datetime NOT NULL COMMENT '建立時間	',
   `edit_date` datetime NOT NULL COMMENT '最後修改時間	'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='職務';
+
+--
+-- 傾印資料表的資料 `position`
+--
+
+INSERT INTO `position` (`id`, `name`, `permission`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, '業務主管', '2', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(2, '業務', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(3, '會計', '1,2,3', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -90,12 +111,12 @@ CREATE TABLE `stock_log` (
 
 CREATE TABLE `user` (
   `id` int(11) UNSIGNED NOT NULL,
-  `account` text NOT NULL COMMENT '帳號',
+  `account` varchar(255) NOT NULL COMMENT '帳號',
   `name` varchar(50) NOT NULL COMMENT '姓名',
   `gender` tinyint(1) NOT NULL COMMENT '性別',
   `department_id` int(11) UNSIGNED NOT NULL COMMENT '部門',
   `position_id` int(11) UNSIGNED NOT NULL COMMENT '職務',
-  `use_date` datetime NOT NULL COMMENT '啟用時間',
+  `use_date` datetime DEFAULT NULL COMMENT '啟用時間',
   `disable_date` datetime DEFAULT NULL COMMENT '停用時間',
   `create_date` datetime NOT NULL COMMENT '建立時間',
   `edit_date` datetime NOT NULL COMMENT '最後修改時間'
@@ -106,9 +127,10 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `account`, `name`, `gender`, `department_id`, `position_id`, `use_date`, `disable_date`, `create_date`, `edit_date`) VALUES
-(1, 'user_a', '業務主管A', 1, 1, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(1, 'user_a', '業務主管A', 1, 1, 1, '2019-11-12 10:18:15', NULL, '2019-11-11 00:00:00', '2019-11-12 10:41:45'),
 (2, 'user_b', '業務主管B', 2, 2, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
-(3, 'user_c', '業務主管C', 1, 3, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00');
+(3, 'user_c', '業務主管C', 1, 3, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(4, 'user', '會計', 0, 1, 3, NULL, NULL, '2019-11-12 10:42:28', '2019-11-12 10:50:49');
 
 -- --------------------------------------------------------
 
@@ -130,9 +152,11 @@ CREATE TABLE `user_pwd` (
 --
 
 INSERT INTO `user_pwd` (`id`, `user_id`, `password`, `use_date`, `create_date`, `edit_date`) VALUES
-(1, 1, 'd50fcbe7957bd2020da911c398f49a85', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(1, 1, 'd50fcbe7957bd2020da911c398f49a85', '2019-11-12 10:41:45', '2019-11-11 00:00:00', '2019-11-12 10:41:45'),
 (2, 2, '4f21ad704c5667f4957c0450af3f4bee', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
-(3, 3, 'd6730c4f59dbd125e7c434aeaa43e7c8', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00');
+(3, 3, 'd6730c4f59dbd125e7c434aeaa43e7c8', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(4, 1, 'cb9dae505476a895cd885ac9b7e0eab3', '2019-11-12 10:41:24', '2019-11-12 10:12:27', '2019-11-12 10:41:24'),
+(5, 4, 'ee11cbb19052e40b07aac0ca060c23ee', '2019-11-12 10:42:28', '2019-11-12 10:42:28', '2019-11-12 10:42:28');
 
 --
 -- 已傾印資料表的索引
@@ -169,6 +193,7 @@ ALTER TABLE `stock_log`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `account` (`account`) USING BTREE,
   ADD KEY `department` (`department_id`);
 
 --
@@ -186,13 +211,13 @@ ALTER TABLE `user_pwd`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `department`
 --
 ALTER TABLE `department`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `position`
 --
 ALTER TABLE `position`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `product`
@@ -210,13 +235,13 @@ ALTER TABLE `stock_log`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user_pwd`
 --
 ALTER TABLE `user_pwd`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

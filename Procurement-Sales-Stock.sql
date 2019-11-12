@@ -94,7 +94,7 @@ CREATE TABLE `user` (
   `name` varchar(50) NOT NULL COMMENT '姓名',
   `gender` tinyint(1) NOT NULL COMMENT '性別',
   `department_id` int(11) UNSIGNED NOT NULL COMMENT '部門',
-  `position_id` int(11) UNSIGNED NOT NULL COMMENT '職位',
+  `position_id` int(11) UNSIGNED NOT NULL COMMENT '職務',
   `use_date` datetime NOT NULL COMMENT '啟用時間',
   `disable_date` datetime DEFAULT NULL COMMENT '停用時間',
   `create_date` datetime NOT NULL COMMENT '建立時間',

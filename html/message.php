@@ -10,7 +10,17 @@
 		background-color: #cfc;
 		color: #050;
 		font-weight: bold;
-		width: 90vw;
+		min-width: 50px;
+		max-width: 90%;
+		padding: 10px;
+		margin: 1px auto;
+	}
+	.info_msg {
+		background-color: #ccf;
+		color: #500;
+		font-weight: bold;
+		min-width: 50px;
+		max-width: 90%;
 		padding: 10px;
 		margin: 1px auto;
 	}
@@ -18,7 +28,8 @@
 		background-color: #fcc;
 		color: #500;
 		font-weight: bold;
-		width: 90vw;
+		min-width: 50px;
+		max-width: 90%;
 		padding: 10px;
 		margin: 1px auto;
 	}

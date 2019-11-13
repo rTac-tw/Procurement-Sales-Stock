@@ -87,6 +87,7 @@
 		}
 
 		// 修改密碼
+		if(empty($user_id)) $user_controller_pwd_change = false;
 		if($user_controller_pwd_change) {
 			$new_pwd = md5($new_pwd);
 			// 檢查是否與目前使用密碼相同

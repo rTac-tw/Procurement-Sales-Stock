@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2019 年 11 月 12 日 10:57
+-- 產生時間： 2019 年 11 月 13 日 10:55
 -- 伺服器版本： 5.7.28-log
 -- PHP 版本： 7.2.24
 
@@ -43,9 +43,9 @@ CREATE TABLE `department` (
 
 INSERT INTO `department` (`id`, `name`, `permission`, `disable_date`, `create_date`, `edit_date`) VALUES
 (1, '會計室', '1,2,3,4', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
-(2, '第一業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
-(3, '第二業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
-(4, '第三業務部', NULL, NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00');
+(2, '第一業務部', '2', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(3, '第二業務部', '3', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00'),
+(4, '第三業務部', '4', NULL, '2019-11-12 00:00:00', '2019-11-12 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -85,6 +85,15 @@ CREATE TABLE `product` (
   `edit_date` datetime NOT NULL COMMENT '最後修改時間	'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='商品主表';
 
+--
+-- 傾印資料表的資料 `product`
+--
+
+INSERT INTO `product` (`id`, `name`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, '口香糖', NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(2, '泡麵', NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(3, '糖果', NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00');
+
 -- --------------------------------------------------------
 
 --
@@ -94,6 +103,7 @@ CREATE TABLE `product` (
 CREATE TABLE `stock_log` (
   `id` bigint(10) UNSIGNED NOT NULL,
   `user_id` int(10) UNSIGNED NOT NULL COMMENT '操作者id',
+  `stock_type` tinyint(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '異動類型(進銷)',
   `product_id` int(10) UNSIGNED NOT NULL COMMENT '商品id',
   `quantity` int(11) NOT NULL COMMENT '異動數量',
   `subtotal` int(11) NOT NULL COMMENT '剩餘庫存小計',
@@ -102,6 +112,19 @@ CREATE TABLE `stock_log` (
   `create_date` datetime NOT NULL COMMENT '建立時間',
   `edit_date` datetime NOT NULL COMMENT '最後修改時間	'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='庫存異動紀錄';
+
+--
+-- 傾印資料表的資料 `stock_log`
+--
+
+INSERT INTO `stock_log` (`id`, `user_id`, `stock_type`, `product_id`, `quantity`, `subtotal`, `is_inventory_check`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, 5, 0, 1, 1000, 1000, 1, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(2, 5, 1, 1, 200, 800, 0, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(3, 9, 0, 2, 500, 500, 1, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(4, 8, 1, 2, 210, 290, 0, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(5, 6, 1, 2, 200, 10, 0, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(6, 9, 0, 2, 2000, 2010, 0, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(7, 9, 1, 2, 200, 1810, 0, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -127,10 +150,15 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `account`, `name`, `gender`, `department_id`, `position_id`, `use_date`, `disable_date`, `create_date`, `edit_date`) VALUES
-(1, 'user_a', '業務主管A', 1, 1, 1, '2019-11-12 10:18:15', NULL, '2019-11-11 00:00:00', '2019-11-12 10:41:45'),
-(2, 'user_b', '業務主管B', 2, 2, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
-(3, 'user_c', '業務主管C', 1, 3, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
-(4, 'user', '會計', 0, 1, 3, NULL, NULL, '2019-11-12 10:42:28', '2019-11-12 10:50:49');
+(1, 'user_a', '業務主管A', 1, 2, 1, '2019-11-12 10:18:15', NULL, '2019-11-11 00:00:00', '2019-11-12 10:41:45'),
+(2, 'user_b', '業務主管B', 2, 3, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(3, 'user_c', '業務主管C', 1, 4, 1, '2019-11-11 00:00:00', NULL, '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
+(4, 'user', '會計', 0, 1, 3, NULL, NULL, '2019-11-12 10:42:28', '2019-11-12 10:50:49'),
+(5, 'user_1', '業務甲', 0, 2, 2, NULL, NULL, '2019-11-13 02:04:00', '2019-11-13 02:04:00'),
+(6, 'user_2', '業務乙', 0, 2, 2, NULL, NULL, '2019-11-13 02:04:36', '2019-11-13 02:04:36'),
+(7, 'user_3', '業務丙', 0, 3, 2, NULL, NULL, '2019-11-13 06:22:49', '2019-11-13 06:22:49'),
+(8, 'user_4', '業務丁', 0, 3, 2, NULL, NULL, '2019-11-13 06:23:15', '2019-11-13 06:23:15'),
+(9, 'user_5', '業務戊', 0, 4, 2, NULL, NULL, '2019-11-13 06:24:05', '2019-11-13 06:24:05');
 
 -- --------------------------------------------------------
 
@@ -156,7 +184,12 @@ INSERT INTO `user_pwd` (`id`, `user_id`, `password`, `use_date`, `create_date`, 
 (2, 2, '4f21ad704c5667f4957c0450af3f4bee', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
 (3, 3, 'd6730c4f59dbd125e7c434aeaa43e7c8', '2019-11-11 00:00:00', '2019-11-11 00:00:00', '2019-11-11 00:00:00'),
 (4, 1, 'cb9dae505476a895cd885ac9b7e0eab3', '2019-11-12 10:41:24', '2019-11-12 10:12:27', '2019-11-12 10:41:24'),
-(5, 4, 'ee11cbb19052e40b07aac0ca060c23ee', '2019-11-12 10:42:28', '2019-11-12 10:42:28', '2019-11-12 10:42:28');
+(5, 4, 'ee11cbb19052e40b07aac0ca060c23ee', '2019-11-12 10:42:28', '2019-11-12 10:42:28', '2019-11-12 10:42:28'),
+(6, 5, '3f49044c1469c6990a665f46ec6c0a41', '2019-11-13 02:04:00', '2019-11-13 02:04:00', '2019-11-13 02:04:00'),
+(7, 6, '15e1576abc700ddfd9438e6ad1c86100', '2019-11-13 02:04:36', '2019-11-13 02:04:36', '2019-11-13 02:04:36'),
+(8, 7, 'a6f601b7c855d45c6b5b182ab32a67c0', '2019-11-13 06:22:49', '2019-11-13 06:22:49', '2019-11-13 06:22:49'),
+(9, 8, 'bb640eb8250ff322567a401240dd6a2e', '2019-11-13 06:23:15', '2019-11-13 06:23:15', '2019-11-13 06:23:15'),
+(10, 9, 'fa890200036e527ebb5cba50e1c0450f', '2019-11-13 06:24:05', '2019-11-13 06:24:05', '2019-11-13 06:24:05');
 
 --
 -- 已傾印資料表的索引
@@ -223,25 +256,25 @@ ALTER TABLE `position`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `product`
 --
 ALTER TABLE `product`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `stock_log`
 --
 ALTER TABLE `stock_log`
-  MODIFY `id` bigint(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user_pwd`
 --
 ALTER TABLE `user_pwd`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

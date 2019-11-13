@@ -19,21 +19,14 @@
 <a href="javascript:void(0);" id="user_form_add">新增使用者</a>
 <?php
 	}
-
+?>
+<!-- 使用者列表 -->
+<?php
 	$where = '';
-	if(!empty($position_permission)) {
-		// 職務權限
-		if(!empty($department_permission)) {
-			// 部門權限
-			$where .= ' AND `department_id` IN (\'' . join('\', \'', $department_permission) . '\')';
-		}
-		$where .= ' AND `position_id` IN (\'' . join('\', \'', $position_permission) . '\')';
+	if(!empty($department_permission) && !empty($position_permission)) {
+		// 有部門權限 + 有職務權限 = 有管理其他使用者的權限
+		$where = ' OR (`department_id` IN (\'' . join('\', \'', $department_permission) . '\') AND `position_id` IN (\'' . join('\', \'', $position_permission) . '\'))';
 	}
-
-	if($where) {
-		$where = ' OR (' . substr($where, 5) . ')';
-	}
-
 	$user_result = model::query('SELECT `id`, `name`, `department_id`, `position_id` FROM `user` WHERE `id` = \'' . $user_data['id'] . '\'' . $where . ';');
 
 	$department_result = model::query('SELECT `id`, `name`, `disable_date` FROM `department`;');
@@ -47,6 +40,15 @@
 		$position[$val['id']] = $val['name'] . (empty($val['disable_date']?'':' (停用)'));
 	}
 ?>
+<style type="text/css">
+	#user_list td {
+		text-align: center;
+	}
+	.self_tag {
+		color: #800;
+		font-weight:bold;
+	}
+</style>
 <table width="100%" id="user_list">
 	<thead>
 		<tr>
@@ -69,7 +71,7 @@
 ?>
 		<tr>
 			<td><a href="javascript:void(0);" id="user_edit" data-user_id="<?php echo $val['id']; ?>">修改</a></td>
-			<td><?php echo $val['name']; ?></td>
+			<td><?php echo $val['name']; ?><?php echo ($val['id'] == $user_data['id'])?' (<span class="self_tag">我</span>)':''; ?></td>
 			<td><?php echo $department[$val['department_id']]; ?></td>
 			<td><?php echo $position[$val['position_id']]; ?></td>
 		</tr>
@@ -79,9 +81,11 @@
 ?>
 	</tbody>
 </table>
+<!-- 使用者列表 End -->
+<!-- 新增使用者 -->
 <style type="text/css">
 	.user_form {
-		position: absolute;
+		position: fixed;
 		top: 0;
 		left: 0;
 		display: none;
@@ -235,3 +239,4 @@
 		$('.user_form').hide();
 	});
 </script>
+<!-- 新增使用者 End -->

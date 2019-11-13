@@ -43,22 +43,22 @@
 <div class="main_body">
 	<div class="main_menu">
 		<ul id="menu_btn">
-			<li data-mode="input"<?php echo ($mode=='input')?' class="active"':''; ?>>進銷登打</li>
-			<li data-mode="list"<?php echo ($mode=='list')?' class="active"':''; ?>>進銷查詢</li>
+			<li data-mode="product_list"<?php echo ($mode=='product_list')?' class="active"':''; ?>>商品列表</li>
+			<li data-mode="stock_list"<?php echo ($mode=='stock_list')?' class="active"':''; ?>>進銷查詢</li>
 			<li data-mode="user"<?php echo ($mode=='user')?' class="active"':''; ?>>使用者</li>
 		</ul>
 	</div>
 	<div class="main_content">
 <?php
 	switch ($mode) {
-		case 'input':
+		case 'product_list':
 			include_once(WEB_PATH . '/html/message.php');
-			include_once(WEB_PATH . '/html/input.php');
+			include_once(WEB_PATH . '/html/product_list.php');
 			break;
 
-		case 'list':
+		case 'stock_list':
 			include_once(WEB_PATH . '/html/message.php');
-			include_once(WEB_PATH . '/html/list.php');
+			include_once(WEB_PATH . '/html/stock_list.php');
 			break;
 
 		case 'user_add':

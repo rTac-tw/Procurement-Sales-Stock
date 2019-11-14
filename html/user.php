@@ -118,10 +118,10 @@
 		<form method="POST">
 			<input type="hidden" name="mode" id="user_form_mode" value="">
 			<input type="hidden" name="user_id" id="user_form_user_id" value="">
-			<p><label>帳號<span class="required_tag">*</span></label><input type="text" name="account" id="user_form_account"></p>
+			<p><label>帳號<span class="required_tag" title="必填">*</span></label><input type="text" name="account" id="user_form_account"></p>
 			<p><label>設定新密碼</label><input type="text" name="new_pwd" id="user_form_new_pwd" style="background-color: #eee;"></p>
 			<p><label>新密碼確認</label><input type="text" name="pwd_check" id="user_form_pwd_check" style="background-color: #eee;"></p>
-			<p><label>姓名<span class="required_tag">*</span></label><input type="text" name="name" id="user_form_name"></p>
+			<p><label>姓名<span class="required_tag" title="必填">*</span></label><input type="text" name="name" id="user_form_name"></p>
 			<p>
 				<label>性別</label>
 				<select name="gender" id="user_form_gender">
@@ -131,7 +131,7 @@
 				</select>
 			</p>
 			<p>
-				<label>部門<span class="required_tag">*</span></label>
+				<label>部門<span class="required_tag" title="必填">*</span></label>
 				<select name="department_id" id="user_form_department_id">
 					<option>未選擇</option>
 <?php
@@ -145,7 +145,7 @@
 				</select>
 			</p>
 			<p>
-				<label>職務<span class="required_tag">*</span></label>
+				<label>職務<span class="required_tag" title="必填">*</span></label>
 <?php
 	if(empty($position_permission)) {
 		// 沒有調整職務權限

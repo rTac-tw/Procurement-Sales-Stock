@@ -28,18 +28,30 @@ class DB {
 	public function query($sql) {
 		if($this->conn) {
 			$result = mysqli_query($this->conn, $sql);
-			if(is_bool($result)) return $result;
+			if(is_bool($result)) {
+				if($result === false) {
+					error_log('db query Error Description: ' . mysqli_error($this->conn));
+				}
+				return $result;
+			}
 
 			$return = array();
 			while($row = mysqli_fetch_assoc($result)) {
 				$return[] = $row;
 			}
 
+			mysqli_free_result($result); // test 釋放內存
+
 			return $return;
 		} else {
-			error_log('DB Unconnected.');
+			error_log('db Unconnected.');
 			return null;
 		}
+	}
+
+	// 取得前一筆 query 受 insert update delete select 影響的數量
+	public function get_affected_rows() {
+		return mysqli_affected_rows($this->conn);
 	}
 
 	public function get_insert_id() {

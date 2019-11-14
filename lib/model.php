@@ -10,6 +10,10 @@ class model {
 		return static::$db->query($sql);
 	}
 
+	public static function get_affected_rows() {
+		return static::$db->get_affected_rows(); // 取得前一筆 query 受 insert update delete select 影響的數量
+	}
+
 	public static function get_insert_id() {
 		return static::$db->get_insert_id();
 	}

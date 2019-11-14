@@ -18,38 +18,182 @@
 </style>
 <div class="search_bar">
 	<input type="text" id="datepicker_start"> ~ <input type="text" id="datepicker_end">
+	<input type="button" id="search_btn" value="搜尋">
 	<span id="show_title_text"></span>
 	<a href="javascript:void(0)" id="level_back">&nbsp;返回&nbsp;</a>
 </div>
 <script type="text/javascript">
 	var search_bar = (function() {
+		var _ = {
+			def_position : '<?php echo $user_data['position_id']; ?>',
+			def_user_name : '<?php echo $user_data['name']; ?>',
+			level_title_text_arr : [],
+			level_id_arr : [],
+			level_min : 2, // 預設 較低層級
+			level_now : 2,
+			level_min_cache_data : {},
+		};
 		var _init = function() {
 			// https://api.jqueryui.com/datepicker/
-			$.datepicker.formatDate("yy-mm-dd");
-			$('#datepicker_start').datepicker();
-			$('#datepicker_end').datepicker();
+			$('#datepicker_start').datepicker({dateFormat: 'yy-mm-dd'});
+			$('#datepicker_end').datepicker({dateFormat: 'yy-mm-dd'});
 
 			$('#level_back').off('click').on('click', function() {
-				stock_list.level_back(); // 外部物件，stock_list 返回
+				_back();
 			});
+
+			$('#search_btn').off('click').on('click', function() {
+				_load(_.level_title_text_arr[_.level_now], _.level_id_arr[_.level_now]);
+			});
+
+			// test 職務判斷為 hard-code 對應，待修正
+			switch(_.def_position) {
+				case '1': // 業務主管
+					_.level_now = 1;
+					_.level_min = 1;
+					break;
+				case '2': // 業務
+					_.level_now = 2;
+					_.level_min = 2;
+					break;
+				case '3': // 會計
+					_.level_now = 0;
+					_.level_min = 0;
+					break;
+				default:
+			}
+			_load(_.def_user_name);
 		};
+		var _next = function(title_text, user_id) {
+			_.level_now++;
+			_load(title_text, user_id);
+		};
+		var _back = function() {
+			switch(_.level_now) {
+				case 1:
+					_.level_now = 0;
+					_title_text('公司');
+					stock_list.make(_.level_min_cache_data);
+					break;
+				case 2:
+					_.level_now = 1;
+					_title_text(_.level_title_text_arr[_.level_now]);
+					stock_detail.hide(); // 外部物件，關閉 #stock_detail
+					stock_list.show(); // 外部物件，顯示 #stock_list
+					break;
+				default:
+			}
+			if(_.level_now > _.level_min) {
+				$('#level_back').show();
+			} else {
+				$('#level_back').hide();
+			}
+		};
+		var _load = function(title_text, user_id) {
+			if(!user_id) user_id = '';
+			_.level_id_arr[_.level_now] = user_id;
+			_.level_title_text_arr[_.level_now] = title_text;
+			switch(_.level_now) {
+				case 0: // 全公司層
+					_title_text('公司');
+					_process.get_stock_list(); // 取得全公司庫存異動列表(統計結果)
+					break;
+				case 1: // 業務主管層
+					_title_text(title_text);
+					_process.get_stock_list_for_executives_id(user_id); // 取得部門庫存異動列表(統計結果)
+					break;
+				case 2: // 業務層
+					_title_text(title_text + ' -- 明細');
+					_process.get_stock_detail_for_user_id(user_id); // 取得庫存異動詳細清單
+					break;
+				default:
+			}
+			if(_.level_now > _.level_min) {
+				$('#level_back').show();
+			} else {
+				$('#level_back').hide();
+			}
+		}
+
 		var _title_text = function(text) {
 			$('#show_title_text').text('[ ' + text + ' ]');
 		};
-		var _level_show = function() {
-			$('#level_back').show();
-		};
-		var _level_hide = function() {
-			$('#level_back').hide();
+		var _process = {
+			get_stock_list : function() {
+				var post_data = {mode:'ajax_get_stock_list'};
+
+				// 設定期間
+				var date_tmp = $('#datepicker_start').val();
+				if(date_tmp) post_data.date_start = date_tmp;
+				date_tmp = $('#datepicker_end').val();
+				if(date_tmp) post_data.date_end = date_tmp;
+
+				$.post(document.URL, post_data, function(rep) {
+					if(typeof rep.status != 'undefined') {
+						if(!rep.status) {
+							stock_list.make([]);
+							console.log(rep.msg);
+						} else {
+							_.level_min_cache_data = rep.result;
+							stock_list.make(rep.result);
+						}
+					} else {
+						stock_list.make([]);
+					}
+				}, 'json');
+			},
+			get_stock_list_for_executives_id : function(user_id) {
+				var post_data = {mode:'ajax_get_stock_list_for_executives_id'};
+				if(user_id) post_data.user_id = user_id;
+
+				// 設定期間
+				var date_tmp = $('#datepicker_start').val();
+				if(date_tmp) post_data.date_start = date_tmp;
+				date_tmp = $('#datepicker_end').val();
+				if(date_tmp) post_data.date_end = date_tmp;
+
+				$.post(document.URL, post_data, function(rep) {
+					if(typeof rep.status != 'undefined') {
+						if(!rep.status) {
+							stock_list.make([]);
+							console.log(rep.msg);
+						} else {
+							stock_list.make(rep.result);
+						}
+					} else {
+						stock_list.make([]);
+					}
+				}, 'json');
+			},
+			get_stock_detail_for_user_id : function(user_id) {
+				var post_data = {mode:'ajax_get_stock_detail_for_user_id'};
+				if(user_id) post_data.user_id = user_id;
+
+				// 設定期間
+				var date_tmp = $('#datepicker_start').val();
+				if(date_tmp) post_data.date_start = date_tmp;
+				date_tmp = $('#datepicker_end').val();
+				if(date_tmp) post_data.date_end = date_tmp;
+
+				$.post(document.URL, post_data, function(rep) {
+					if(typeof rep.status != 'undefined') {
+						if(!rep.status) {
+							stock_detail.make([]);
+							console.log(rep.msg);
+						} else {
+							stock_detail.make(rep.result);
+						}
+					} else {
+						stock_detail.make([]);
+					}
+				}, 'json');
+			},
 		};
 		return {
 			init : _init,
-			title_text : _title_text,
-			level_show : _level_show,
-			level_hide : _level_hide,
+			next : _next,
 		};
 	})();
-	search_bar.init();
 </script>
 
 <!-- 進銷查詢 第一層 - 全公司庫存異動列表(統計結果) + 第二層 - 部門庫存異動列表(統計結果) -->
@@ -95,30 +239,13 @@
 		var _ = {
 			stock_list_no_records : '',
 			stock_list_tr : '',
-			level_min : 1, // 預設 較低層級
-			top_level_cache : {},
-			title_text : [],
-			level_now : 1,
 		};
 		var _init = function(level, title_text) {
 			_.stock_list_no_records = $('#stock_list_no_records').html();
 			_.stock_list_tr = $('#stock_list_template').html();
-
-			_.level_now = _.level_min = level;
-
-			_.title_text[_.level_now] = title_text;
-			if(_.level_min == 0) {
-				_process.get_stock_list(); // 取得全公司庫存異動列表(統計結果)
-			} else {
-				_load(); // 取得部門庫存異動列表(統計結果)
-			}
-		};
-		var _load = function(user_id) {
-			_process.get_stock_list_for_executives_id(user_id); // 取得部門庫存異動列表(統計結果)
 		};
 		var _make = function(data) {
 			$('#stock_list_table tbody tr').remove();
-			search_bar.title_text(_.title_text[_.level_now]);
 
 			if($.isArray(data) && data.length > 0) {
 				for(var i = 0; i < data.length; i++) {
@@ -134,83 +261,29 @@
 				$('#stock_list_table tbody').append('<tr>' + _.stock_list_no_records + '</tr>');
 			}
 			_event();
-			if(_.level_now == _.level_min) {
-				search_bar.level_hide(); // 外部物件，於公用 search_bar 隱藏 返回 按鈕
-			} else {
-				search_bar.level_show(); // 外部物件，於公用 search_bar 顯示 返回 按鈕
-			}
-			stock_detail.hide(); // 外部物件，關閉 #stock_detail
+			_show();
+		};
+		var _show = function() {
 			$('#stock_list').show();
 		};
-		var _level_back = function() {
-			switch(_.level_now) {
-				case 1:
-					_.level_now = 0;
-					_make(_.top_level_cache);
-					break;
-				case 2:
-					_.level_now = 1;
-					if(_.level_now == _.level_min) {
-						search_bar.level_hide(); // 外部物件，於公用 search_bar 隱藏 返回 按鈕
-					} else {
-						search_bar.level_show(); // 外部物件，於公用 search_bar 顯示 返回 按鈕
-					}
-					stock_detail.hide(); // 外部物件，關閉 #stock_detail
-					$('#stock_list').show();
-					break;
-				default:
-			}
+		var _hide = function() {
+			$('#stock_list').hide();
 		};
 		var _event = function() {
 			$('#stock_list #stock_list_user_name').off('click').on('click', function() {
 				var user_id = $(this).data('user_id');
 				var user_name = $(this).text();
-				if(_.level_now) {
-					_.level_now = 2;
-					stock_detail.load(user_name, user_id);
-					search_bar.level_show(); // 外部物件，於公用 search_bar 顯示 返回 按鈕
-					$('#stock_list').hide();
-				} else {
-					_.level_now = 1;
-					_.title_text[_.level_now] = user_name;
-					_load(user_id);
-				}
+				search_bar.next(user_name, user_id); // 外部物件，於 search_bar 顯示下層
 			});
-		};
-		var _process = {
-			get_stock_list : function() {
-				$.post(document.URL, {mode:'ajax_get_stock_list'}, function(rep) {
-					if(typeof rep.status != 'undefined') {
-						if(!rep.status) {
-							_make([]);
-							console.log(rep.msg);
-						} else {
-							_make(rep.result);
-							_.top_level_cache = rep.result;
-						}
-					}
-				}, 'json');
-			},
-			get_stock_list_for_executives_id : function(user_id) {
-				var post_data = {mode:'ajax_get_stock_list_for_executives_id'};
-				if(user_id) post_data.user_id = user_id;
-				$.post(document.URL, post_data, function(rep) {
-					if(typeof rep.status != 'undefined') {
-						if(!rep.status) {
-							_make([]);
-							console.log(rep.msg);
-						} else {
-							_make(rep.result);
-						}
-					}
-				}, 'json');
-			},
 		};
 		return {
 			init : _init,
-			level_back : _level_back,
+			make : _make,
+			show : _show,
+			hide : _hide,
 		};
 	})();
+	stock_list.init();
 </script>
 <!-- 進銷查詢 第一層 + 第二層 End -->
 
@@ -237,9 +310,9 @@
 				<td colspan="3">查無紀錄</td>
 			</tr>
 			<tr id="stock_detail_template">
-				<td id="stock_detail_product_name"></td>
-				<td id="stock_detail_quantity"></td>
-				<td id="stock_detail_stock_type"></td>
+				<td>[<span id="stock_detail_product_name"></span>]</td>
+				<td>[<span id="stock_detail_quantity"></span>]</td>
+				<td>[<span id="stock_detail_stock_type"></span>]</td>
 			</tr>
 		</tbody>
 	</table>
@@ -250,10 +323,6 @@
 		var _init = function() {
 			_.stock_detail_no_records = $('#stock_detail_no_records').html();
 			_.stock_detail_tr = $('#stock_detail_template').html();
-		};
-		var _load = function(user_name, user_id) {
-			search_bar.title_text(user_name + ' -- 明細'); // 外部物件，於公用 search_bar 顯示 user_name
-			_process.get_stock_detail_for_user_id(user_id);
 		};
 		var _make = function(data) {
 			$('#stock_detail_table tbody tr').remove();
@@ -285,29 +354,16 @@
 			}
 
 			$('#stock_detail').show();
+			stock_list.hide(); // 外部物件，關閉 #stock_list
 		};
 		var _hide = function() {
 			$('#stock_detail').hide();
 		};
 		var _process = {
-			get_stock_detail_for_user_id : function(user_id) {
-				var post_data = {mode:'ajax_get_stock_detail_for_user_id'};
-				if(user_id) post_data.user_id = user_id;
-				$.post(document.URL, post_data, function(rep) {
-					if(typeof rep.status != 'undefined') {
-						if(!rep.status) {
-							_make([]);
-							console.log(rep.msg);
-						} else {
-							_make(rep.result);
-						}
-					}
-				}, 'json');
-			},
 		};
 		return {
 			init : _init,
-			load : _load,
+			make : _make,
 			hide : _hide,
 		};
 	})();
@@ -317,40 +373,16 @@
 
 <!-- 登入者執行動作 -->
 <script type="text/javascript">
-	var stock_main = (function() {
-		var _ = {
-			def_position : '<?php echo $user_data['position_id']; ?>',
-			def_user_name : '<?php echo $user_data['name']; ?>',
-		};
-		var _init = function() {
-			// test 職務判斷為 hard-code 對應，待修正
-			switch(_.def_position) {
-				case '1': // 業務主管
-					stock_list.init(1, _.def_user_name);
-					break;
-				case '2': // 業務
-					stock_detail.load(_.def_user_name);
-					break;
-				case '3': // 會計
-					stock_list.init(0, '公司');
-					break;
-				default:
-			}
-		};
-		return {
-			init : _init,
-		};
-	})();
-	stock_main.init();
+	search_bar.init();
 </script>
 <!-- 登入者執行動作 End -->
 
 <!-- 進銷登打 -->
 <?php
-	$product_result = model::query('SELECT `id`, `name`, `disable_date` FROM `product`;');
+	$product_result = model::query('SELECT `id`, `name`, `quantity`, `disable_date` FROM `product`;');
 	$product = array();
 	foreach($product_result as $val) {
-		$product[$val['id']] = $val['name'] . (empty($val['disable_date']?'':' (停用)'));
+		$product[$val['id']] = $val['name'] . ' [庫存: ' . $val['quantity'] . ']' . (empty($val['disable_date']?'':' (停用)'));
 	}
 	unset($product_result);
 ?>
@@ -390,15 +422,15 @@
 			<input type="hidden" name="mode" id="stock_form_mode" value="">
 			<!-- <input type="hidden" name="stock_id" id="stock_form_stock_id" value=""> -->
 			<p>
-				<label>貨單類型</label>
+				<label>貨單類型<span class="required_tag" title="必填">*</span></label>
 				<select name="stock_type" id="stock_form_stock_type">
 					<option>未選擇</option>
-					<option value="0">進貨</option>
-					<option value="1">銷貨</option>
+					<option value="P">進貨</option>
+					<option value="S">銷貨</option>
 				</select>
 			</p>
 			<p>
-				<label>商品<span class="required_tag">*</span></label>
+				<label>商品<span class="required_tag" title="必填">*</span></label>
 				<select name="product_id" id="stock_form_product_id">
 					<option>未選擇</option>
 <?php
@@ -411,7 +443,7 @@
 ?>
 				</select>
 			</p>
-			<p><label>數量<span class="required_tag">*</span></label><input type="text" name="quantity" id="stock_form_quantity"></p>
+			<p><label>數量<span class="required_tag" title="必填">*</span></label><input type="text" name="quantity" id="stock_form_quantity"></p>
 			<p><label>狀態</label><span id="stock_form_ststus"></span></p>
 			<p><input type="submit" value="送出"></p>
 		</form>

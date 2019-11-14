@@ -3,35 +3,28 @@
 ?>
 <style type="text/css">
 	.div_area {
-		text-align:center;
-		width: 100vw;
+		text-align:center; /* 致中用 */
+		width: 100%;
+	}
+	.div_area div {
+		font-weight: bold;
+		min-width: 50px;
+		max-width: 90%;
+		padding: 10px;
+		margin: auto; /* 致中用 */
+		margin-bottom: 10px;
 	}
 	.success_msg {
 		background-color: #cfc;
 		color: #050;
-		font-weight: bold;
-		min-width: 50px;
-		max-width: 90%;
-		padding: 10px;
-		margin: 1px auto;
 	}
 	.info_msg {
 		background-color: #ccf;
-		color: #500;
-		font-weight: bold;
-		min-width: 50px;
-		max-width: 90%;
-		padding: 10px;
-		margin: 1px auto;
+		color: #005;
 	}
 	.error_msg {
 		background-color: #fcc;
 		color: #500;
-		font-weight: bold;
-		min-width: 50px;
-		max-width: 90%;
-		padding: 10px;
-		margin: 1px auto;
 	}
 </style>
 <div class="div_area">

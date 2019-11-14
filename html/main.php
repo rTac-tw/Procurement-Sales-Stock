@@ -56,6 +56,8 @@
 			include_once(WEB_PATH . '/html/product_list.php');
 			break;
 
+		case 'stock_add':
+			include_once(WEB_PATH . '/controller/stock.php'); // 處理 新增修改
 		case 'stock_list':
 			include_once(WEB_PATH . '/html/message.php');
 			include_once(WEB_PATH . '/html/stock_list.php');

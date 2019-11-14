@@ -34,17 +34,39 @@
 				$position_permission = explode(',', $user_data['position']['permission']);
 			}
 
-			$where = '';
-			if(!empty($department_permission) && !empty($position_permission) && in_array(EXECUTIVES_POSITION_ID, $position_permission)) {
-				// 有部門權限 + 有職務權限，並且職務權限包含業務主管
-				$where = ' OR (e.`department_id` IN (\'' . join('\', \'', $department_permission) . '\') AND e.`position_id` = ' . EXECUTIVES_POSITION_ID . ')';
+			if(empty($position_permission) || !in_array(EXECUTIVES_POSITION_ID, $position_permission)) {
+				echo json_encode(array('status' => false, 'msg' => 'insufficient permissions', 'result' => null));
+				die;
+			}
+
+			$where = 's.`user_id` = \'' . $user_data['id'] . '\'';
+			if(!empty($department_permission)) {
+				// 有部門權限 且職務權限包含業務主管
+				$where = '(' . $where . ' OR (e.`department_id` IN (\'' . join('\', \'', $department_permission) . '\') AND e.`position_id` = ' . EXECUTIVES_POSITION_ID . '))';
+			}
+			// 設定期間
+			$date_start = get_array($_POST, 'date_start');
+			$date_end = get_array($_POST, 'date_end');
+			if(empty($date_start)) {
+				if(!empty($date_end)) {
+					$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+					$where .= ' AND s.`create_date` <= \'' . $date_end . '\'';
+				}
+			} else {
+				$date_start = date("Y-m-d 00:00:00", strtotime($date_start)); // sql injection 防範
+				if(empty($date_end)) {
+					$where .= ' AND s.`create_date` >= \'' . $date_start . '\'';
+				} else {
+					$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+					$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
+				}
 			}
 			$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` ELSE 0 END) AS `purchase_qty`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` ELSE 0 END) AS `sales_qty`, e.`id` AS `user_id`, e.`name` AS `user_name` FROM `stock_log` AS s 
 				LEFT JOIN `user` AS u ON s.`user_id` = u.`id` 
 				LEFT JOIN `department` AS d ON FIND_IN_SET(u.`department_id`, d.`permission`) 
 				LEFT JOIN `position` AS p ON p.`permission` IS NOT NULL AND FIND_IN_SET(u.`position_id`, p.`permission`) 
-				LEFT JOIN `user` AS e ON d.`id` = e.`department_id` AND p.`id` = e.`position_id`
-				WHERE s.`user_id` = \'' . $user_data['id'] . '\'' . $where . ' AND s.`disable_date` IS NULL GROUP BY e.`id`;');
+				LEFT JOIN `user` AS e ON (d.`id` = e.`department_id` AND (p.`id` = e.`position_id` OR u.`id` = e.`id`)) 
+				WHERE ' . $where . ' AND s.`disable_date` IS NULL GROUP BY e.`id`;');
 			if(empty($stock_result)) {
 				echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 			} else {
@@ -84,6 +106,7 @@
 				if(empty($self_department_permission) || empty($self_position_permission)) {
 					// 權限不足
 					echo json_encode(array('status' => false, 'msg' => 'insufficient permissions', 'result' => null));
+					die;
 				} else {
 					// 有部門權限 + 有職務權限 = 有管理其他使用者的權限
 					$user_result = model::query('SELECT d.`permission` AS `department_permission`, p.`permission` AS `position_permission` FROM `user` AS u LEFT JOIN `department` AS d ON u.`department_id` = d.`id` LEFT JOIN `position` AS p ON u.`position_id` = p.`id` WHERE u.`id` = \'' . $user_id . '\' AND u.`department_id` IN (\'' . join('\', \'', $self_department_permission) . '\') AND u.`position_id` IN (\'' . join('\', \'', $self_position_permission) . '\');');
@@ -93,14 +116,32 @@
 			if(empty($user_result)) {
 				// 權限不足或查無此業務主管
 				echo json_encode(array('status' => false, 'msg' => 'insufficient permissions', 'result' => null));
+				die;
 			} else {
 				// 依目標業務主管權限，取得部門庫存異動列表(統計結果)
-				$where = '';
+				$where = 's.`user_id` = \'' . $user_id . '\'';
 				if(!empty($user_result[0]['department_permission']) && !empty($user_result[0]['position_permission'])) {
 					// 有部門權限 + 有職務權限 = 有管理其他使用者的權限
-					$where = ' OR (u.`department_id` IN (\'' . $user_result[0]['department_permission'] . '\') AND u.`position_id` IN (\'' . $user_result[0]['position_permission'] . '\'))';
+					$where = '(' . $where . ' OR (u.`department_id` IN (\'' . $user_result[0]['department_permission'] . '\') AND u.`position_id` IN (\'' . $user_result[0]['position_permission'] . '\')))';
 				}
-				$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` ELSE 0 END) AS `purchase_qty`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` ELSE 0 END) AS `sales_qty`, u.`id` AS `user_id`, u.`name` AS `user_name` FROM `stock_log` AS s LEFT JOIN `user` AS u ON s.`user_id` = u.`id` WHERE s.`user_id` = \'' . $user_id . '\'' . $where . ' AND s.`disable_date` IS NULL GROUP BY s.`user_id`;');
+				// 設定期間
+				$date_start = get_array($_POST, 'date_start');
+				$date_end = get_array($_POST, 'date_end');
+				if(empty($date_start)) {
+					if(!empty($date_end)) {
+						$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+						$where .= ' AND s.`create_date` <= \'' . $date_end . '\'';
+					}
+				} else {
+					$date_start = date("Y-m-d 00:00:00", strtotime($date_start)); // sql injection 防範
+					if(empty($date_end)) {
+						$where .= ' AND s.`create_date` >= \'' . $date_start . '\'';
+					} else {
+						$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+						$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
+					}
+				}
+				$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` ELSE 0 END) AS `purchase_qty`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` ELSE 0 END) AS `sales_qty`, u.`id` AS `user_id`, u.`name` AS `user_name` FROM `stock_log` AS s LEFT JOIN `user` AS u ON s.`user_id` = u.`id` WHERE ' . $where . ' AND s.`disable_date` IS NULL GROUP BY s.`user_id`;');
 				if(empty($stock_result)) {
 					echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 				} else {
@@ -120,7 +161,25 @@
 
 			// 缺 驗證自身ajax權限
 
-			$stock_result = model::query('SELECT s.`stock_type`, s.`quantity`, p.`name` AS `product_name` FROM `stock_log` AS s LEFT JOIN `product` AS p ON s.`product_id` = p.`id` WHERE s.`user_id` = \'' . $user_id . '\' AND s.`disable_date` IS NULL;');
+			$where = '';
+			// 設定期間
+			$date_start = get_array($_POST, 'date_start');
+			$date_end = get_array($_POST, 'date_end');
+			if(empty($date_start)) {
+				if(!empty($date_end)) {
+					$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+					$where .= ' AND s.`create_date` <= \'' . $date_end . '\'';
+				}
+			} else {
+				$date_start = date("Y-m-d 00:00:00", strtotime($date_start)); // sql injection 防範
+				if(empty($date_end)) {
+					$where .= ' AND s.`create_date` >= \'' . $date_start . '\'';
+				} else {
+					$date_end = date("Y-m-d 23:59:59", strtotime($date_end)); // sql injection 防範
+					$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
+				}
+			}
+			$stock_result = model::query('SELECT s.`stock_type`, s.`quantity`, p.`name` AS `product_name` FROM `stock_log` AS s LEFT JOIN `product` AS p ON s.`product_id` = p.`id` WHERE s.`user_id` = \'' . $user_id . '\'' . $where . ' AND s.`disable_date` IS NULL;');
 			if(empty($stock_result)) {
 				echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 			} else {

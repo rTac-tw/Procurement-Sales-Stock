@@ -3,10 +3,10 @@
 
 	$mode = get_array($_POST, 'mode');
 
-	$user_controller_error = false;
-	$user_controller_pwd_change = false;
-
 	if($mode == 'user_add' || $mode == 'user_edit') {
+		$user_controller_error = false;
+		$user_controller_pwd_change = false;
+
 		// 檢查欄位輸入
 		$account = get_array($_POST, 'account');
 		if(empty($account)) {

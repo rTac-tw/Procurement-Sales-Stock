@@ -61,7 +61,7 @@
 					$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
 				}
 			}
-			$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` ELSE 0 END) AS `purchase_qty`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` ELSE 0 END) AS `sales_qty`, e.`id` AS `user_id`, e.`name` AS `user_name` FROM `stock_log` AS s 
+			$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` * s.`price` ELSE 0 END) AS `purchase_amount`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` * s.`price` ELSE 0 END) AS `sales_amount`, e.`id` AS `user_id`, e.`name` AS `user_name` FROM `stock_log` AS s 
 				LEFT JOIN `user` AS u ON s.`user_id` = u.`id` 
 				LEFT JOIN `department` AS d ON FIND_IN_SET(u.`department_id`, d.`permission`) 
 				LEFT JOIN `position` AS p ON p.`permission` IS NOT NULL AND FIND_IN_SET(u.`position_id`, p.`permission`) 
@@ -141,7 +141,7 @@
 						$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
 					}
 				}
-				$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` ELSE 0 END) AS `purchase_qty`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` ELSE 0 END) AS `sales_qty`, u.`id` AS `user_id`, u.`name` AS `user_name` FROM `stock_log` AS s LEFT JOIN `user` AS u ON s.`user_id` = u.`id` WHERE ' . $where . ' AND s.`disable_date` IS NULL GROUP BY s.`user_id`;');
+				$stock_result = model::query('SELECT SUM(CASE WHEN s.`stock_type` = 0 THEN s.`quantity` * s.`price` ELSE 0 END) AS `purchase_amount`, SUM(CASE WHEN s.`stock_type` = 1 THEN s.`quantity` * s.`price` ELSE 0 END) AS `sales_amount`, u.`id` AS `user_id`, u.`name` AS `user_name` FROM `stock_log` AS s LEFT JOIN `user` AS u ON s.`user_id` = u.`id` WHERE ' . $where . ' AND s.`disable_date` IS NULL GROUP BY s.`user_id`;');
 				if(empty($stock_result)) {
 					echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 				} else {
@@ -179,11 +179,27 @@
 					$where .= ' AND s.`create_date` >= \'' . $date_start . '\' AND s.`create_date` <= \'' . $date_end . '\'';
 				}
 			}
-			$stock_result = model::query('SELECT s.`stock_type`, s.`quantity`, p.`name` AS `product_name` FROM `stock_log` AS s LEFT JOIN `product` AS p ON s.`product_id` = p.`id` WHERE s.`user_id` = \'' . $user_id . '\'' . $where . ' AND s.`disable_date` IS NULL;');
+			$stock_result = model::query('SELECT s.`stock_type`, s.`price`, s.`quantity`, p.`name` AS `product_name` FROM `stock_log` AS s LEFT JOIN `product` AS p ON s.`product_id` = p.`id` WHERE s.`user_id` = \'' . $user_id . '\'' . $where . ' AND s.`disable_date` IS NULL;');
 			if(empty($stock_result)) {
 				echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 			} else {
 				echo json_encode(array('status' => true, 'msg' => 'ok', 'result' => $stock_result));
+			}
+			die;
+
+		case 'ajax_get_product_data':
+			$product_id = (int)get_array($_POST, 'product_id');
+			if($product_id) {
+				include_once(WEB_PATH . '/lib/model.php');
+
+				$product_result = model::query('SELECT `id`, `name`, `price`, `quantity`, `disable_date` FROM `product` WHERE `id` = ' . $product_id . ';');
+				if(empty($product_result)) {
+					echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
+				} else {
+					echo json_encode(array('status' => true, 'msg' => 'ok', 'result' => $product_result[0]));
+				}
+			} else {
+				echo json_encode(array('status' => false, 'msg' => 'product_id is missing', 'result' => null));
 			}
 			die;
 

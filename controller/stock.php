@@ -46,7 +46,7 @@
 
 			if($product_result !== false && model::get_affected_rows()) {
 				// 庫存異動成功
-				$stock_result = model::query('INSERT INTO `stock_log` (`user_id`, `stock_type`, `product_id`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES (' . $user_data['id'] . ', ' . $stock_type . ', ' . $product_id . ', ' . $quantity . ', NULL, \'' . $datetime_now . '\', \'' . $datetime_now . '\');');
+				$stock_result = model::query('INSERT INTO `stock_log` (`user_id`, `stock_type`, `product_id`, `price`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES (' . $user_data['id'] . ', ' . $stock_type . ', ' . $product_id . ', (SELECT `price` FROM `product` WHERE `id` = ' . $product_id . '), ' . $quantity . ', NULL, \'' . $datetime_now . '\', \'' . $datetime_now . '\');');
 				if(empty($stock_result)) {
 					$message_arr[] = array('error', '新增 [' . ($stock_type==0?'進':'銷') . ']貨單 失敗，請聯絡資訊部門');
 				} else {

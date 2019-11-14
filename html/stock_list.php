@@ -227,8 +227,8 @@
 			</tr>
 			<tr id="stock_list_template">
 				<td>[<a href="javascript:void(0);" id="stock_list_user_name"></a>]</td>
-				<td>[ <sapn id="stock_list_purchase_qty"></sapn> ]</td>
-				<td>[ <sapn id="stock_list_sales_qty"></sapn> ]</td>
+				<td>[ <sapn id="stock_list_purchase_amount"></sapn> ]</td>
+				<td>[ <sapn id="stock_list_sales_amount"></sapn> ]</td>
 				<td>[ <sapn id="stock_list_subtotal"></sapn> ]</td>
 			</tr>
 		</tbody>
@@ -240,7 +240,7 @@
 			stock_list_no_records : '',
 			stock_list_tr : '',
 		};
-		var _init = function(level, title_text) {
+		var _init = function() {
 			_.stock_list_no_records = $('#stock_list_no_records').html();
 			_.stock_list_tr = $('#stock_list_template').html();
 		};
@@ -251,9 +251,9 @@
 				for(var i = 0; i < data.length; i++) {
 					var tr = $('<tr>' + _.stock_list_tr + '</tr>');
 					tr.find('#stock_list_user_name').text(data[i].user_name).data('user_id', data[i].user_id);
-					tr.find('#stock_list_purchase_qty').text(data[i].purchase_qty);
-					tr.find('#stock_list_sales_qty').text(data[i].sales_qty);
-					tr.find('#stock_list_subtotal').text(data[i].sales_qty - data[i].purchase_qty);
+					tr.find('#stock_list_purchase_amount').text(data[i].purchase_amount);
+					tr.find('#stock_list_sales_amount').text(data[i].sales_amount);
+					tr.find('#stock_list_subtotal').text(data[i].sales_amount - data[i].purchase_amount);
 
 					$('#stock_list_table tbody').append(tr);
 				}
@@ -302,6 +302,8 @@
 			<tr>
 				<th>產品</th>
 				<th>進出</th>
+				<th>當下價格</th>
+				<th>數量</th>
 				<th>貨單類型</th>
 			</tr>
 		</thead>
@@ -311,6 +313,8 @@
 			</tr>
 			<tr id="stock_detail_template">
 				<td>[<span id="stock_detail_product_name"></span>]</td>
+				<td>[<span id="stock_detail_amount"></span>]</td>
+				<td>[<span id="stock_detail_price"></span>]</td>
 				<td>[<span id="stock_detail_quantity"></span>]</td>
 				<td>[<span id="stock_detail_stock_type"></span>]</td>
 			</tr>
@@ -328,24 +332,27 @@
 			$('#stock_detail_table tbody tr').remove();
 
 			if($.isArray(data) && data.length > 0) {
-				var quantity = '';
+				var amount_symbol = '';
 				for(var i = 0; i < data.length; i++) {
 					var tr = $('<tr>' + _.stock_detail_tr + '</tr>');
 					tr.find('#stock_detail_product_name').text(data[i].product_name);
 					if(data[i].stock_type == 0) {
 						if(data[i].quantity > 0)
-							quantity = '+ ' + data[i].quantity;
+							amount_symbol = '+ ';
 						else
-							quantity = '- ' + data[i].quantity;
+							amount_symbol = '- ';
 						tr.find('#stock_detail_stock_type').text('進貨');
 					} else {
 						if(data[i].quantity > 0)
-							quantity = '- ' + data[i].quantity;
+							amount_symbol = '- ';
 						else
-							quantity = '+ ' + data[i].quantity;
+							amount_symbol = '+ ';
 						tr.find('#stock_detail_stock_type').text('銷貨');
 					}
-					tr.find('#stock_detail_quantity').text(quantity);
+					data[i].quantity = Math.abs(data[i].quantity);
+					tr.find('#stock_detail_amount').text(amount_symbol + (data[i].price * data[i].quantity));
+					tr.find('#stock_detail_price').text(data[i].price);
+					tr.find('#stock_detail_quantity').text(amount_symbol + data[i].quantity);
 
 					$('#stock_detail_table tbody').append(tr);
 				}
@@ -379,10 +386,10 @@
 
 <!-- 進銷登打 -->
 <?php
-	$product_result = model::query('SELECT `id`, `name`, `quantity`, `disable_date` FROM `product`;');
+	$product_result = model::query('SELECT `id`, `name`, `price`, `quantity`, `disable_date` FROM `product`;');
 	$product = array();
 	foreach($product_result as $val) {
-		$product[$val['id']] = $val['name'] . ' [庫存: ' . $val['quantity'] . ']' . (empty($val['disable_date']?'':' (停用)'));
+		$product[$val['id']] = $val['name'] . ' [單價: ' . $val['price'] . '] [庫存: ' . $val['quantity'] . ']' . (empty($val['disable_date']?'':' (停用)'));
 	}
 	unset($product_result);
 ?>
@@ -451,8 +458,6 @@
 </div>
 
 <script type="text/javascript">
-	// -- 解決自己的職務沒有權限設定時，修改自己的帳號職務會遺失問題
-
 	// 新增 [進/銷]貨單
 	$('#stock_form_add').off('click').on('click', function() {
 		// 清空

@@ -51,6 +51,9 @@
 	<div class="main_content">
 <?php
 	switch ($mode) {
+		case 'product_add':
+		case 'product_edit':
+			include_once(WEB_PATH . '/controller/product.php'); // 處理 新增修改
 		case 'product_list':
 			include_once(WEB_PATH . '/html/message.php');
 			include_once(WEB_PATH . '/html/product_list.php');

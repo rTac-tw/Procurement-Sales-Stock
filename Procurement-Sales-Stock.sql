@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2019 年 11 月 14 日 07:50
+-- 產生時間： 2019 年 11 月 14 日 10:23
 -- 伺服器版本： 5.7.28-log
 -- PHP 版本： 7.2.24
 
@@ -80,6 +80,7 @@ INSERT INTO `position` (`id`, `name`, `permission`, `disable_date`, `create_date
 CREATE TABLE `product` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(50) NOT NULL COMMENT '商品名稱',
+  `price` int(10) UNSIGNED NOT NULL COMMENT '價格',
   `quantity` int(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '庫存數量',
   `disable_date` datetime DEFAULT NULL COMMENT '停用(下架)時間',
   `create_date` datetime NOT NULL COMMENT '建立時間	',
@@ -90,10 +91,11 @@ CREATE TABLE `product` (
 -- 傾印資料表的資料 `product`
 --
 
-INSERT INTO `product` (`id`, `name`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES
-(1, '口香糖', 1500, NULL, '2019-11-13 00:00:00', '2019-11-14 06:40:54'),
-(2, '泡麵', 1810, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
-(3, '糖果', 800, NULL, '2019-11-13 00:00:00', '2019-11-14 06:42:38');
+INSERT INTO `product` (`id`, `name`, `price`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, '口香糖', 17, 170, NULL, '2019-11-13 00:00:00', '2019-11-14 10:21:19'),
+(2, '泡麵', 50, 189, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(3, '糖果', 2, 80, NULL, '2019-11-13 00:00:00', '2019-11-14 06:42:38'),
+(4, '蘇打餅乾', 25, 0, NULL, '2019-11-14 10:21:57', '2019-11-14 10:21:57');
 
 -- --------------------------------------------------------
 
@@ -106,6 +108,7 @@ CREATE TABLE `stock_log` (
   `user_id` int(10) UNSIGNED NOT NULL COMMENT '操作者id',
   `stock_type` tinyint(1) UNSIGNED NOT NULL DEFAULT '0' COMMENT '異動類型(進銷)',
   `product_id` int(10) UNSIGNED NOT NULL COMMENT '商品id',
+  `price` int(10) UNSIGNED NOT NULL COMMENT '登打當下價格',
   `quantity` int(11) NOT NULL COMMENT '異動數量',
   `disable_date` datetime DEFAULT NULL COMMENT '停用(作廢)時間	',
   `create_date` datetime NOT NULL COMMENT '建立時間',
@@ -116,22 +119,23 @@ CREATE TABLE `stock_log` (
 -- 傾印資料表的資料 `stock_log`
 --
 
-INSERT INTO `stock_log` (`id`, `user_id`, `stock_type`, `product_id`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES
-(1, 5, 0, 1, 1000, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
-(2, 5, 1, 1, 200, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:01'),
-(3, 9, 0, 2, 500, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:02'),
-(4, 8, 1, 2, 210, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:03'),
-(5, 6, 1, 2, 200, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:04'),
-(6, 9, 0, 2, 2000, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:05'),
-(7, 9, 1, 2, 200, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:06'),
-(8, 4, 1, 1, 200, NULL, '2019-11-14 05:59:46', '2019-11-14 05:59:46'),
-(9, 4, 1, 1, 100, NULL, '2019-11-14 06:03:01', '2019-11-14 06:03:01'),
-(10, 4, 0, 1, 1000, NULL, '2019-11-14 06:17:13', '2019-11-14 06:17:13'),
-(11, 4, 1, 1, 50, NULL, '2019-11-14 06:35:41', '2019-11-14 06:35:41'),
-(12, 4, 1, 1, 50, NULL, '2019-11-14 06:36:38', '2019-11-14 06:36:38'),
-(13, 4, 1, 1, 50, NULL, '2019-11-14 06:39:07', '2019-11-14 06:39:07'),
-(14, 4, 0, 1, 150, NULL, '2019-11-14 06:40:54', '2019-11-14 06:40:54'),
-(15, 1, 0, 3, 800, NULL, '2019-11-14 06:42:38', '2019-11-14 06:42:38');
+INSERT INTO `stock_log` (`id`, `user_id`, `stock_type`, `product_id`, `price`, `quantity`, `disable_date`, `create_date`, `edit_date`) VALUES
+(1, 5, 0, 1, 17, 100, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:00'),
+(2, 5, 1, 1, 17, 20, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:01'),
+(3, 9, 0, 2, 50, 50, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:02'),
+(4, 8, 1, 2, 50, 21, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:03'),
+(5, 6, 1, 2, 50, 20, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:04'),
+(6, 9, 0, 2, 50, 200, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:05'),
+(7, 9, 1, 2, 50, 20, NULL, '2019-11-13 00:00:00', '2019-11-13 00:00:06'),
+(8, 4, 1, 1, 17, 20, NULL, '2019-11-14 05:59:46', '2019-11-14 05:59:46'),
+(9, 4, 1, 1, 17, 10, NULL, '2019-11-14 06:03:01', '2019-11-14 06:03:01'),
+(10, 4, 0, 1, 17, 100, NULL, '2019-11-14 06:17:13', '2019-11-14 06:17:13'),
+(11, 4, 1, 1, 17, 5, NULL, '2019-11-14 06:35:41', '2019-11-14 06:35:41'),
+(12, 4, 1, 1, 17, 5, NULL, '2019-11-14 06:36:38', '2019-11-14 06:36:38'),
+(13, 4, 1, 1, 17, 5, NULL, '2019-11-14 06:39:07', '2019-11-14 06:39:07'),
+(14, 4, 0, 1, 17, 15, NULL, '2019-11-14 06:40:54', '2019-11-14 06:40:54'),
+(15, 1, 0, 3, 2, 80, NULL, '2019-11-14 06:42:38', '2019-11-14 06:42:38'),
+(16, 4, 0, 1, 17, 20, NULL, '2019-11-14 09:49:27', '2019-11-14 09:49:27');
 
 -- --------------------------------------------------------
 
@@ -263,13 +267,13 @@ ALTER TABLE `position`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `product`
 --
 ALTER TABLE `product`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `stock_log`
 --
 ALTER TABLE `stock_log`
-  MODIFY `id` bigint(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user`

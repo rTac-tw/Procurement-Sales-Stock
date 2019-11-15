@@ -60,7 +60,7 @@
 
 		// 檢查save權限 - 設定 目標 部門/職位
 		$user_data = check_login();
-		if(!empty($department_id) && !empty($position_id) && !check_department_permission($department_id) || ($user_id != $user_data['id'] && !check_position_permission($position_id))) {
+		if(!empty($department_id) && !empty($position_id) && !check_department_permission($department_id) || (($mode == 'user_add' || $user_id != $user_data['id']) && !check_position_permission($position_id))) {
 			$message_arr[] = array('error', ($mode == 'user_add'?'新增':'修改') . ' 權限不足，請聯絡資訊部門');
 			$user_controller_error = true;
 			$user_controller_pwd_change = false;

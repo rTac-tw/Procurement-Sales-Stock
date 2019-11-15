@@ -25,6 +25,8 @@
 			}
 		}
 
+		// 檢查save權限 - 商品共用故不需要檢查
+
 		if(!$product_controller_error) {
 			// 執行儲存
 			$datetime_now = date("Y-m-d H:i:s");
@@ -38,6 +40,8 @@
 					$message_arr[] = array('success', '商品 ' . $name . '，已新增');
 				}
 			} else {
+				// 檢查save權限 - 商品共用故不需要檢查
+
 				// 修改
 				$product_result = model::query('UPDATE `product` SET `name` = \'' . $name . '\', `price` = \'' . $price . '\', `edit_date` = \'' . $datetime_now . '\' WHERE `id` = ' . $product_id);
 				if(empty($product_result)) {

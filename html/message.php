@@ -3,7 +3,7 @@
 ?>
 <style type="text/css">
 	.div_area {
-		text-align:center; /* 致中用 */
+		text-align:center; /* 置中用 */
 		width: 100%;
 	}
 	.div_area div {
@@ -11,7 +11,7 @@
 		min-width: 50px;
 		max-width: 90%;
 		padding: 10px;
-		margin: auto; /* 致中用 */
+		margin: auto; /* 置中用 */
 		margin-bottom: 10px;
 	}
 	.success_msg {

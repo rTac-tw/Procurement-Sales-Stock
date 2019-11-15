@@ -5,13 +5,17 @@
 			if($user_id) {
 				include_once(WEB_PATH . '/lib/model.php');
 
-				// 缺 驗證自身ajax權限
-
 				$user_result = model::query('SELECT u.`id`, u.`account`, u.`name`, u.`gender`, u.`department_id`, u.`position_id`, p.`name` AS `position`, u.`use_date`, u.`disable_date` FROM `user` AS u LEFT JOIN `position` AS p ON u.`position_id` = p.`id` WHERE u.`id` = \'' . $user_id . '\';');
 				if(empty($user_result)) {
 					echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
 				} else {
-					echo json_encode(array('status' => true, 'msg' => 'ok', 'result' => $user_result[0]));
+					// 檢查get權限
+					$user_data = check_login();
+					if($user_id != $user_data['id'] && (!check_department_permission($user_result[0]['department_id']) || !check_position_permission($user_result[0]['position_id']))) {
+						echo json_encode(array('status' => false, 'msg' => 'insufficient permissions', 'result' => null));
+					} else {
+						echo json_encode(array('status' => true, 'msg' => 'ok', 'result' => $user_result[0]));
+					}
 				}
 			} else {
 				echo json_encode(array('status' => false, 'msg' => 'user_id is missing', 'result' => null));
@@ -159,7 +163,18 @@
 			}
 			include_once(WEB_PATH . '/lib/model.php');
 
-			// 缺 驗證自身ajax權限
+			// 檢查get權限
+			$user_result = model::query('SELECT `department_id`, `position_id` FROM `user` WHERE `id` = ' . $user_id . ';');
+			if(empty($user_result)) {
+				echo json_encode(array('status' => false, 'msg' => 'No records in the database', 'result' => null));
+				die;
+			} else {
+				$user_target_data = $user_result[0];
+				if($user_id != $user_data['id'] && (!check_department_permission($user_result[0]['department_id']) || !check_position_permission($user_result[0]['position_id']))) {
+					echo json_encode(array('status' => false, 'msg' => 'insufficient permissions', 'result' => null));
+					die;
+				}
+			}
 
 			$where = '';
 			// 設定期間
@@ -191,6 +206,8 @@
 			$product_id = (int)get_array($_POST, 'product_id');
 			if($product_id) {
 				include_once(WEB_PATH . '/lib/model.php');
+
+				// 檢查get權限 - 商品共用故不需要檢查
 
 				$product_result = model::query('SELECT `id`, `name`, `price`, `quantity`, `disable_date` FROM `product` WHERE `id` = ' . $product_id . ';');
 				if(empty($product_result)) {

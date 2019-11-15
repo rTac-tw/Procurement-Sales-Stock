@@ -58,12 +58,34 @@
 			$user_controller_error = true;
 		}
 
+		// 檢查save權限 - 設定 目標 部門/職位
+		$user_data = check_login();
+		if(!empty($department_id) && !empty($position_id) && !check_department_permission($department_id) || ($user_id != $user_data['id'] && !check_position_permission($position_id))) {
+			$message_arr[] = array('error', ($mode == 'user_add'?'新增':'修改') . ' 權限不足，請聯絡資訊部門');
+			$user_controller_error = true;
+			$user_controller_pwd_change = false;
+		}
+
+		// 檢查邏輯: 一個部門不會有兩位業務主管
+		if($position_id == EXECUTIVES_POSITION_ID) {
+			$where = '';
+			if($mode != 'user_add' && !empty($user_id)) {
+				$where = ' AND `id` != ' . $user_id; // 修改時 判斷條件排除目標使用者自己
+			}
+			$user_result = model::query('SELECT `id` FROM `user` WHERE `department_id` = ' . $department_id . ' AND `position_id` = ' . EXECUTIVES_POSITION_ID . $where . ' AND `use_date` IS NOT NULL AND `disable_date` IS NULL;');
+			if(!empty($user_result)) {
+				$message_arr[] = array('error', '同一個部門只能有一位業務主管');
+				$user_controller_error = true;
+			}
+		}
+
 		if(!$user_controller_error) {
 			// 執行儲存
 			$datetime_now = date("Y-m-d H:i:s");
 			if($mode == 'user_add') {
 				// 新增
-				$user_result = model::query('INSERT INTO `user` (`account`, `name`, `gender`, `department_id`, `position_id`, `use_date`, `disable_date`, `create_date`, `edit_date`) VALUES (\'' . $account . '\', \'' . $name . '\', \'' . $gender . '\', \'' . $department_id . '\', \'' . $position_id . '\', NULL, NULL, \'' . $datetime_now . '\', \'' . $datetime_now . '\');'); // 未做 sql injection 防範 !
+				// test 因到職設定尚未，故新增使用者直接到職
+				$user_result = model::query('INSERT INTO `user` (`account`, `name`, `gender`, `department_id`, `position_id`, `use_date`, `disable_date`, `create_date`, `edit_date`) VALUES (\'' . $account . '\', \'' . $name . '\', \'' . $gender . '\', \'' . $department_id . '\', \'' . $position_id . '\', \'' . $datetime_now . '\', NULL, \'' . $datetime_now . '\', \'' . $datetime_now . '\');'); // 未做 sql injection 防範 !
 				if(empty($user_result)) {
 					$message_arr[] = array('error', '新增 ' . $name . ' 使用者失敗，請聯絡資訊部門');
 				} else {
@@ -76,12 +98,29 @@
 					}
 				}
 			} else {
-				// 修改
-				$user_result = model::query('UPDATE `user` SET `account` = \'' . $account . '\', `name` = \'' . $name . '\', `gender` = \'' . $gender . '\', `department_id` = \'' . $department_id . '\', `position_id` = \'' . $position_id . '\', `edit_date` = \'' . $datetime_now . '\' WHERE `id` = ' . $user_id);
+				// 檢查save權限 - 設定 使用者 原 部門/職位
+				$user_result = model::query('SELECT `name`, `department_id`, `position_id` FROM `user` WHERE `id` = ' . $user_id . ';');
 				if(empty($user_result)) {
-					$message_arr[] = array('error', '修改 ' . $name . ' 使用者失敗，請聯絡資訊部門');
+					$message_arr[] = array('error', '修改 ' . $name . ' 使用者失敗，此帳號並不存在');
+					$user_controller_error = true;
+					$user_controller_pwd_change = false;
 				} else {
-					$message_arr[] = array('success', '修改使用者 ' . $name . '，完成');
+					$user_target_data = $user_result[0];
+					if(!check_department_permission($user_target_data['department_id']) || ($user_id != $user_data['id'] && !check_position_permission($user_target_data['position_id']))) {
+						$message_arr[] = array('error', '修改 權限不足，請聯絡資訊部門');
+						$user_controller_error = true;
+						$user_controller_pwd_change = false;
+					}
+				}
+
+				if(!$user_controller_error) {
+					// 修改
+					$user_result = model::query('UPDATE `user` SET `account` = \'' . $account . '\', `name` = \'' . $name . '\', `gender` = \'' . $gender . '\', `department_id` = \'' . $department_id . '\', `position_id` = \'' . $position_id . '\', `edit_date` = \'' . $datetime_now . '\' WHERE `id` = ' . $user_id);
+					if(empty($user_result)) {
+						$message_arr[] = array('error', '修改 ' . $name . ($name==$user_target_data['name']?'':'(原: ' . $user_target_data['name'] . ')') . ' 使用者失敗，請聯絡資訊部門');
+					} else {
+						$message_arr[] = array('success', '修改使用者 ' . $name . ($name==$user_target_data['name']?'':'(原: ' . $user_target_data['name'] . ')') . '，完成');
+					}
 				}
 			}
 		}

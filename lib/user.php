@@ -37,4 +37,27 @@ function sign_out() {
 	return $account;
 }
 
+function check_department_permission($department_id) {
+	$user_data = check_login();
+	$department_id = (int)@$department_id;
+
+	if(!empty($user_data['department']) && !empty($user_data['department']['permission']) && !empty($department_id)) {
+		$department_permission = explode(',', $user_data['department']['permission']);
+		if(in_array($department_id, $department_permission)) return true;;
+	}
+
+	return false;
+}
+
+function check_position_permission($position_id) {
+	$user_data = check_login();
+	$position_id = (int)@$position_id;
+
+	if(!empty($user_data['position']) && !empty($user_data['position']['permission']) && !empty($position_id)) {
+		$position_permission = explode(',', $user_data['position']['permission']);
+		if(in_array($position_id, $position_permission)) return true;;
+	}
+
+	return false;
+}
 ?>

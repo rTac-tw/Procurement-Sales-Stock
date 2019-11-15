@@ -32,6 +32,8 @@
 			$message_arr[] = array('error', '數量 欄位必填，請輸入');
 			$stock_controller_error = true;
 		}
+		
+		// 檢查save權限 - [進/銷]貨單 只能 新增/修改 自己的紀錄，但是沒有修改所以不需要檢查
 
 		if(!$stock_controller_error) {
 			// 執行儲存
